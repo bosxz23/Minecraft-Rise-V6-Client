@@ -229,34 +229,11 @@ function CompressTheFiles(op, msg, other) {
         console.error("Error while compressing: " + msg.message);
         console.error(msg);
     } else if (op == 'finish') {
-        console.log("Compressed succeessfully.\nRunning Git Commands...");
-        runClean(other).then(() => {
-            console.log("Git Add")
-        }
-        ).then(() => {
-            console.log("Git Commit\nDone for all.")
-        });
+        console.log("Compressed succeessfully.\nDone for all.");
+        
 
     }
 }
-const runClean = async function (version) {
-    // cwd指定子进程的当前工作目录 这里的rm -rf build为删除指定目录下的一个文件夹
-    await exec(`git add *`, { cwd: "./mcdata-auto" });
-    await exec(`git commit -m "Update Version: ${version}"`, { cwd: "./mcdata-auto" });
-}
-// downloadFile("https://piston-meta.mojang.com/mc/game/version_manifest.json", "./versions.json", (state, pro, currPro, total) => {
-//     if (state == 'data') {
-//         // 下载进度
-//         console.log("Downloading... " + pro + "%")
-
-//     } else if (state == 'finish') {
-//         console.log(parsing)
-//     } else if (state == 'error') {
-//         console.error("Error!", pro);
-//     }
-
-//     // console.log(state);
-// })
 const ItemIgnoreList = ["lava", "water", "air", "lodestone_compass"];
 // 纯方块或者是give无效id
 function getItems(lang) {

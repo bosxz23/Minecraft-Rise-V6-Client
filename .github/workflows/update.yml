@@ -30,6 +30,8 @@ jobs:
       - name: Push files
         run: |
           cd mcdata-auto
+          git add *
+          git commit -m "Update the infomations."
           ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
           ssh-keyscan -t rsa gitlab.com >> ~/.ssh/known_hosts
           git push -u git@gitlab.com:wifi-left/mcdata-auto.git main
