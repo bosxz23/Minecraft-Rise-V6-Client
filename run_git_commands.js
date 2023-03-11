@@ -12,9 +12,24 @@ var cmds = cmd.split("\n");
 
 const runClean = async function () {
     // cwd指定子进程的当前工作目录 这里的rm -rf build为删除指定目录下的一个文件夹
-    for(var i =0;i<cmds.length;i++){
-        await exec(cmds[i], { cwd: "./mcdata-auto" });
+    try {
+        for (var i = 0; i < cmds.length; i++) {
+            await exec(cmds[i], { cwd: "./mcdata-auto" });
+        }
+    } catch (e) {
+        console.warn("STDERR #" + (i + 1) + ": " + e.message);
     }
+
 }
-runClean();
+runClean().then(() => {
+    console.log("Done CMD #1")
+}).then(() => {
+    console.log("Done CMD #2")
+}).then(() => {
+    console.log("Done CMD #3")
+}).then(() => {
+    console.log("Done CMD #4")
+}).then(() => {
+    console.log("Done CMD #5")
+});
 
