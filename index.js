@@ -11,11 +11,14 @@ let util = require('util')
 let fs = require('fs')
 const fetch = require('node-fetch')
 const archiver = require('archiver');
+const child_process = require('child_process');
+const exec = util.promisify(child_process.exec);
+// const appPath = join(__dirname, 'app');
 
 let infomations = {};
-if (fs.existsSync("./info.json")) {
+if (fs.existsSync("./mcdata-auto/info.json")) {
     try {
-        infomations = JSON.parse(fs.readFileSync("./info.json"));
+        infomations = JSON.parse(fs.readFileSync("./mcdata-auto/info.json"));
     } catch (e) {
         infomations = {};
     }
@@ -36,8 +39,8 @@ if (parargs['version'] != undefined) {
 console.log("Downloading https://piston-meta.mojang.com/mc/game/version_manifest.json ...")
 if (!fs.existsSync("./output"))
     fs.mkdirSync("./output")
-if (!fs.existsSync("./files"))
-    fs.mkdirSync("./files")
+if (!fs.existsSync("./mcdata-auto/files"))
+    fs.mkdirSync("./mcdata-auto/files")
 
 
 /**
@@ -202,9 +205,10 @@ function fetchVersionDetails(data) {
                                     fs.writeFileSync("./output/enchantments.json", JSON.stringify(getEnchantments(json)));
                                     fs.writeFileSync("./output/gamerules.json", JSON.stringify(getGamerules(json)));
                                     //getGamerules
-                                    fs.writeFileSync("./info.json", JSON.stringify(infomations));
+                                    // fs.writeFileSync("./info.json", JSON.stringify(infomations));
+                                    fs.writeFileSync("./mcdata-auto/info.json", JSON.stringify(infomations));
                                     console.log("Compressing the files...");
-                                    zipFolder("./output", `./files/${infomations['version']}.zip`, CompressTheFiles, false);
+                                    zipFolder("./output", `./mcdata-auto/files/${infomations['version']}.zip`, CompressTheFiles, false);
                                 });
                             break;
                         }
@@ -213,12 +217,24 @@ function fetchVersionDetails(data) {
         });
 }
 function CompressTheFiles(op, msg) {
-    if(op=='error'){
-        console.error("Error while compressing: "+msg.message);
+    if (op == 'error') {
+        console.error("Error while compressing: " + msg.message);
         console.error(msg);
-    }else if(op=='finish'){
-        console.log("Compressed succeessfully.")
+    } else if (op == 'finish') {
+        console.log("Compressed succeessfully.\nRunning Git Commands...");
+        runClean().then(() => {
+            console.log("Git Add")
+        }
+        ).then(() => {
+            console.log("Git Commit\nDone for all.")
+        });
+        
     }
+}
+const runClean = async function () {
+    // cwd指定子进程的当前工作目录 这里的rm -rf build为删除指定目录下的一个文件夹
+    await exec(`git add *`,{cwd:"./mcdata-auto"});
+    await exec(`git commit -m "Update Version: ${infomations['version']}"`,{cwd:"./mcdata-auto"});
 }
 // downloadFile("https://piston-meta.mojang.com/mc/game/version_manifest.json", "./versions.json", (state, pro, currPro, total) => {
 //     if (state == 'data') {

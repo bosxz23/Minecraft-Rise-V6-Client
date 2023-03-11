@@ -1,0 +1,24 @@
+name: 'GitHub Actions Check for Minecraft Data update.'
+ 
+on:
+  push:
+  schedule:
+  # 定时任务，在每天的5点检查更新
+    - cron: '0 21 * * *'
+
+jobs:
+  bot:
+    runs-on: ubuntu-latest
+    steps:
+    # 首先copy git仓库到虚拟机上
+      - name: 'Checkout codes'
+        uses: actions/checkout@v1
+      - name: Setup Node.js
+        uses: actions/setup-node@v2  #安装node.js
+        with:
+          node-version: '18'
+      - name: Running bash
+        run: |
+          ./run.sh
+
+    # 执行仓库中的脚本文件
