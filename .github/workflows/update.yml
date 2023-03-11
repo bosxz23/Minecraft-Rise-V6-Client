@@ -12,7 +12,7 @@ jobs:
     steps:
     # 首先copy git仓库到虚拟机上
       - name: 'Checkout codes'
-        uses: actions/checkout@v1
+        uses: actions/checkout@v2
       - name: Setup Node.js
         uses: actions/setup-node@v2  #安装node.js
         with:
@@ -20,5 +20,14 @@ jobs:
       - name: Running bash
         run: |
           ./run.sh
-
+      - name: Install SSH key
+        uses: shimataro/ssh-key-action@v4
+        with:
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+      - name: Push files
+        run: |
+          git config --global user.name "wifi_left"
+          git config --global user.email "ysy1679682327@outlook.com"
+          cd mcdata-auto
+          git push ssh://git@gitlab.com:wifi-left/mcdata-auto
     # 执行仓库中的脚本文件
