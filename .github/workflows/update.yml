@@ -30,5 +30,5 @@ jobs:
       - name: Push files
         run: |
           cd mcdata-auto
-          git push ssh://git@gitlab.com:wifi-left/mcdata-auto
+          git push -u git@gitlab.com:wifi-left/mcdata-auto.git master
     # 执行仓库中的脚本文件
