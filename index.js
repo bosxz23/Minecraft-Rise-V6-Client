@@ -79,7 +79,7 @@ function zipFile(sourceFile, destZip, cb) {
 *   cb，回调函数
 *   subdir，是否需要包一层
 */
-function zipFolder(sourceFolder, destZip, cb, subdir) {
+function zipFolder(sourceFolder, destZip, cb, subdir, other) {
     // init
     var output = fs.createWriteStream(destZip);
     var archive = archiver('zip', {
@@ -88,10 +88,10 @@ function zipFolder(sourceFolder, destZip, cb, subdir) {
 
     // on
     output.on('close', function () {
-        cb("finish", 'zip folder success!');
+        cb("finish", "Finished", other);
     });
     archive.on('error', function (err) {
-        cb("error", err);
+        cb("error", err, other);
     });
 
     // zip
@@ -147,6 +147,7 @@ fetch('https://piston-meta.mojang.com/mc/game/version_manifest.json')
     .then(json => {
         let data = json['versions']
         let flag = false;
+        let flag2 = false;
         for (var i = 0; i < data.length; i++) {
             if (targetversion != undefined) {
                 if (data[i]['id'] == targetversion) {
@@ -154,9 +155,14 @@ fetch('https://piston-meta.mojang.com/mc/game/version_manifest.json')
                     fetchVersionDetails(data[i]);
                     break;
                 }
-            } else if (data[i]['type'] == 'release') {
-                fetchVersionDetails(data[i]);
+            } else if (!flag && data[i]['type'] == 'release') {
+                fetchVersionDetails(data[i], "release");
                 flag = true;
+            } else if (!flag2 && data[i]['type'] == 'snapshot') {
+                fetchVersionDetails(data[i], "snapshot");
+                flag2 = true;
+            }
+            if (flag && flag2) {
                 break;
             }
         }
@@ -164,17 +170,19 @@ fetch('https://piston-meta.mojang.com/mc/game/version_manifest.json')
             console.log("Failed to update the infomation of Minecraft!" + (targetversion != undefined ? " Target Version: " + targetversion : ""));
         }
     });
-
-function fetchVersionDetails(data) {
+function fetchVersionDetails(data, type) {
     let url = data['url'];
     console.log("The current version of Minecraft is " + data['id']);
-    if (infomations['version'] == data['id']) {
-        console.log("No need to update.")
+    if (infomations['version'] == undefined) infomations['version'] = {};
+    if (infomations['version'][type] == data['id']) {
+        console.log(`No need to update ${type}.`);
         return;
     }
+    let version = data['id'];
     console.log("Fetching " + url);
-    infomations['version'] = data['id'];
+    infomations['version'][type] = data['id'];
     infomations['supportVersions'].push(data['id']);
+    infomations['supportVersions'] = Array.from(new Set(infomations['supportVersions']));
     fetch(url)
         .then(res => res.json())
         .then(json => {
@@ -197,7 +205,7 @@ function fetchVersionDetails(data) {
                                 .then(res => res.json())
                                 .then(json => {
                                     fs.writeFileSync(`./output/${lang}.json`, JSON.stringify(json));
-                                    fs.writeFileSync("./output/info.json", JSON.stringify({ "version": infomations['version'], "updateDate": infomations['updateDate'] }));
+                                    fs.writeFileSync("./output/info.json", JSON.stringify({ "version": version, "updateDate": infomations['updateDate'] }));
                                     fs.writeFileSync("./output/items.json", JSON.stringify(getItems(json)));
                                     fs.writeFileSync("./output/blocks.json", JSON.stringify(getBlocks(json)));
                                     fs.writeFileSync("./output/effects.json", JSON.stringify(getEffects(json)));
@@ -208,7 +216,7 @@ function fetchVersionDetails(data) {
                                     // fs.writeFileSync("./info.json", JSON.stringify(infomations));
                                     fs.writeFileSync("./mcdata-auto/info.json", JSON.stringify(infomations));
                                     console.log("Compressing the files...");
-                                    zipFolder("./output", `./mcdata-auto/files/${infomations['version']}.zip`, CompressTheFiles, false);
+                                    zipFolder("./output", `./mcdata-auto/files/${version}.zip`, CompressTheFiles, false, version);
                                 });
                             break;
                         }
@@ -216,25 +224,25 @@ function fetchVersionDetails(data) {
                 });
         });
 }
-function CompressTheFiles(op, msg) {
+function CompressTheFiles(op, msg, other) {
     if (op == 'error') {
         console.error("Error while compressing: " + msg.message);
         console.error(msg);
     } else if (op == 'finish') {
         console.log("Compressed succeessfully.\nRunning Git Commands...");
-        runClean().then(() => {
+        runClean(other).then(() => {
             console.log("Git Add")
         }
         ).then(() => {
             console.log("Git Commit\nDone for all.")
         });
-        
+
     }
 }
-const runClean = async function () {
+const runClean = async function (version) {
     // cwd指定子进程的当前工作目录 这里的rm -rf build为删除指定目录下的一个文件夹
-    await exec(`git add *`,{cwd:"./mcdata-auto"});
-    await exec(`git commit -m "Update Version: ${infomations['version']}"`,{cwd:"./mcdata-auto"});
+    await exec(`git add *`, { cwd: "./mcdata-auto" });
+    await exec(`git commit -m "Update Version: ${version}"`, { cwd: "./mcdata-auto" });
 }
 // downloadFile("https://piston-meta.mojang.com/mc/game/version_manifest.json", "./versions.json", (state, pro, currPro, total) => {
 //     if (state == 'data') {
