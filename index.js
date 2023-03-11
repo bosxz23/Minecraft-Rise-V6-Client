@@ -152,7 +152,7 @@ fetch('https://piston-meta.mojang.com/mc/game/version_manifest.json')
             if (targetversion != undefined) {
                 if (data[i]['id'] == targetversion) {
                     flag = true;
-                    fetchVersionDetails(data[i]);
+                    fetchVersionDetails(data[i],"lastUpdate");
                     break;
                 }
             } else if (!flag && data[i]['type'] == 'release') {
