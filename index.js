@@ -152,7 +152,7 @@ fetch('https://piston-meta.mojang.com/mc/game/version_manifest.json')
             if (targetversion != undefined) {
                 if (data[i]['id'] == targetversion) {
                     flag = true;
-                    fetchVersionDetails(data[i],"lastUpdate");
+                    fetchVersionDetails(data[i], "lastUpdate");
                     break;
                 }
             } else if (!flag && data[i]['type'] == 'release') {
@@ -170,6 +170,8 @@ fetch('https://piston-meta.mojang.com/mc/game/version_manifest.json')
             console.log("Failed to update the infomation of Minecraft!" + (targetversion != undefined ? " Target Version: " + targetversion : ""));
         }
     });
+
+var languageFile = {}, soundsFile = {};
 function fetchVersionDetails(data, type) {
     let url = data['url'];
     console.log("The current version of Minecraft is " + data['id']);
@@ -192,10 +194,13 @@ function fetchVersionDetails(data, type) {
                 .then(res => res.json())
                 .then(json => {
                     let objects = json['objects'];
+                    fs.writeFileSync("./mcdata-auto/info.json", JSON.stringify(infomations));
+                    fs.writeFileSync("./output/info.json", JSON.stringify({ "version": version, "updateDate": infomations['updateDate'] }));
+                    let flag1 = false, flag2 = false, flag3 = false;
                     for (var i in objects) {
                         if (i == `minecraft/lang/${lang}.json`) {
                             let hash = objects[i]['hash'];
-                            console.log("Downloading Object [" + hash + "]");
+                            console.log("Downloading Language Object [" + hash + "]");
                             //https://resources.download.minecraft.net/<hash的前两位字符>/<hash>
                             let index = hash.substring(0, 2);
                             let url = `https://resources.download.minecraft.net/${index}/${hash}`;
@@ -205,24 +210,71 @@ function fetchVersionDetails(data, type) {
                                 .then(res => res.json())
                                 .then(json => {
                                     fs.writeFileSync(`./output/${lang}.json`, JSON.stringify(json));
-                                    fs.writeFileSync("./output/info.json", JSON.stringify({ "version": version, "updateDate": infomations['updateDate'] }));
+
                                     fs.writeFileSync("./output/items.json", JSON.stringify(getItems(json)));
                                     fs.writeFileSync("./output/blocks.json", JSON.stringify(getBlocks(json)));
                                     fs.writeFileSync("./output/effects.json", JSON.stringify(getEffects(json)));
                                     fs.writeFileSync("./output/entities.json", JSON.stringify(getEntities(json)));
                                     fs.writeFileSync("./output/enchantments.json", JSON.stringify(getEnchantments(json)));
                                     fs.writeFileSync("./output/gamerules.json", JSON.stringify(getGamerules(json)));
+                                    languageFile = json;
                                     //getGamerules
                                     // fs.writeFileSync("./info.json", JSON.stringify(infomations));
-                                    fs.writeFileSync("./mcdata-auto/info.json", JSON.stringify(infomations));
-                                    console.log("Compressing the files...");
-                                    zipFolder("./output", `./mcdata-auto/files/${version}.zip`, CompressTheFiles, false, version);
+                                    flag1 = true;
+                                    if (flag1 && flag2 && !flag3) {
+                                        flag3 = true;
+                                        nextStep_Sound(version);
+                                        // break;
+                                    }
                                 });
+
+
+                            // break;
+                        } else if (i == 'minecraft/sounds.json') {
+                            let hash = objects[i]['hash'];
+                            console.log("Downloading Sounds.json Object [" + hash + "]");
+                            //https://resources.download.minecraft.net/<hash的前两位字符>/<hash>
+                            let index = hash.substring(0, 2);
+                            let url = `https://resources.download.minecraft.net/${index}/${hash}`;
+                            console.log("[URL: " + url + "]");
+                            fetch(url)
+                                .then(res => res.json())
+                                .then(json => {
+                                    soundsFile = json;
+                                    flag2 = true;
+                                    if (flag1 && flag2 && !flag3) {
+                                        flag3 = true;
+                                        nextStep_Sound(version);
+                                        // break;
+                                    }
+                                });
+                        }
+                        if (flag1 && flag2) {
                             break;
                         }
                     }
                 });
         });
+}
+function nextStep_Sound(version) {
+    console.log("Dealing with sound.json...");
+    fs.writeFileSync("./output/sounds.json", JSON.stringify(dealSound(soundsFile, languageFile)));
+    console.log("Compressing the files...");
+    zipFolder("./output", `./mcdata-auto/files/${version}.zip`, CompressTheFiles, false, version);
+}
+function dealSound(sound, translation) {
+    var result = [];
+    for (var i in sound) {
+        let obj = sound[i];
+        let trans = i;
+        let line = { id: i, name: trans, translated: false };
+        if (obj['subtitle'] != undefined) {
+            line['name'] = translation[obj['subtitle']];
+            line['translated'] = true;
+        }
+        result[result.length] = line;
+    }
+    return result;
 }
 function CompressTheFiles(op, msg, other) {
     if (op == 'error') {
@@ -230,7 +282,7 @@ function CompressTheFiles(op, msg, other) {
         console.error(msg);
     } else if (op == 'finish') {
         console.log("Compressed succeessfully.\nDone for all.");
-        
+
 
     }
 }
