@@ -19,7 +19,7 @@ jobs:
           node-version: '18'
       - name: Running bash
         run: |
-          ./run.sh
+          bash ./run.sh
       - name: Install SSH key
         uses: shimataro/ssh-key-action@v2
         with:
