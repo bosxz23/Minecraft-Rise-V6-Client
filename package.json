@@ -1,0 +1,25 @@
+{
+  "name": "autoupdate",
+  "version": "1.0.0",
+  "description": "Auto Update the Minecraft Datas",
+  "main": "index.js",
+  "scripts": {
+    "test": "node index.js"
+  },
+  "author": "Gamom",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "yes"
+  },
+  "devDependencies": {
+    "fs": "^0.0.1-security",
+    "node-fetch": "^2.6.2",
+    "zlib": "^1.0.5"
+  },
+  "dependencies": {
+    "archiver": "^5.3.1",
+    "fetch": "^1.1.0",
+    "minimist": "^1.2.8"
+  }
+}
