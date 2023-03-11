@@ -1,5 +1,6 @@
 
 const child_process = require('child_process');
+const util = require('util');
 const exec = util.promisify(child_process.exec);
 
 var cmd = `git add *
