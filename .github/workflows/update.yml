@@ -1,7 +1,6 @@
 name: 'GitHub Actions Check for Minecraft Data update.'
  
 on:
-  push:
   schedule:
   # 定时任务，在每天的5点检查更新
     - cron: '0 21 * * *'
@@ -22,6 +21,9 @@ jobs:
           git config --global user.name "wifi_left"
           git config --global user.email "ysy1679682327@outlook.com"
           bash ./run.sh
+      - name: Push back
+        run: |
+          node run_git_command_date.js
       - name: Install SSH key
         uses: shimataro/ssh-key-action@v2
         with:

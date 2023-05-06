@@ -196,6 +196,7 @@ function fetchVersionDetails(data, type) {
                     let objects = json['objects'];
                     fs.writeFileSync("./mcdata-auto/info.json", JSON.stringify(infomations));
                     fs.writeFileSync("./output/info.json", JSON.stringify({ "version": version, "updateDate": infomations['updateDate'] }));
+                    // fs.writeFileSync("./info.json", JSON.stringify(infomations));
                     let flag1 = false, flag2 = false, flag3 = false;
                     for (var i in objects) {
                         if (i == `minecraft/lang/${lang}.json`) {
@@ -478,5 +479,4 @@ function getGamerules(lang) {
     }
     return result;
     //effect.minecraft.
-
 }
