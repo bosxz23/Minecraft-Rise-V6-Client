@@ -5,12 +5,13 @@
  * @param {*} cb 回调函数参数1为区别哪个加试，如：'download'下载结束，'data'下载进度，'finish'文件写入结束
  */
 let http = require('http')
+let path = require('path')
 let https = require('https')
 let url = require('url')
 let util = require('util')
 let fs = require('fs')
 const fetch = require('node-fetch')
-const archiver = require('archiver');
+// const archiver = require('archiver');
 const child_process = require('child_process');
 const exec = util.promisify(child_process.exec);
 // const appPath = join(__dirname, 'app');
@@ -43,62 +44,62 @@ if (!fs.existsSync("./mcdata-auto/files"))
     fs.mkdirSync("./mcdata-auto/files")
 
 
-/**
- * zip file
- *   sourceFile，待压缩的文件
- *   destZip，压缩后的zip文件
- *   cb，callback
- */
-function zipFile(sourceFile, destZip, cb) {
-    // init
-    var output = fs.createWriteStream(destZip);
-    var archive = archiver('zip', {
-        zlib: { level: 9 }
-    });
+// /**
+//  * zip file
+//  *   sourceFile，待压缩的文件
+//  *   destZip，压缩后的zip文件
+//  *   cb，callback
+//  */
+// function zipFile(sourceFile, destZip, cb) {
+//     // init
+//     var output = fs.createWriteStream(destZip);
+//     var archive = archiver('zip', {
+//         zlib: { level: 9 }
+//     });
 
-    // on
-    output.on('close', function () {
-        cb("finish", 'zip file success!');
-    });
-    archive.on('error', function (err) {
-        cb("error", err);
-    });
+//     // on
+//     output.on('close', function () {
+//         cb("finish", 'zip file success!');
+//     });
+//     archive.on('error', function (err) {
+//         cb("error", err);
+//     });
 
-    // zip
-    archive.pipe(output);
-    archive.file(sourceFile, {
-        name: path.basename(sourceFile)
-    });
-    archive.finalize();
-}
+//     // zip
+//     archive.pipe(output);
+//     archive.file(sourceFile, {
+//         name: path.basename(sourceFile)
+//     });
+//     archive.finalize();
+// }
 
-/**
-* zip folder
-*   sourceFolder，待压缩的文件夹
-*   destZip，压缩后的zip文件
-*   cb，回调函数
-*   subdir，是否需要包一层
-*/
-function zipFolder(sourceFolder, destZip, cb, subdir, other) {
-    // init
-    var output = fs.createWriteStream(destZip);
-    var archive = archiver('zip', {
-        zlib: { level: 9 }
-    });
+// /**
+// * zip folder
+// *   sourceFolder，待压缩的文件夹
+// *   destZip，压缩后的zip文件
+// *   cb，回调函数
+// *   subdir，是否需要包一层
+// */
+// function zipFolder(sourceFolder, destZip, cb, subdir, other) {
+//     // init
+//     var output = fs.createWriteStream(destZip);
+//     var archive = archiver('zip', {
+//         zlib: { level: 9 }
+//     });
 
-    // on
-    output.on('close', function () {
-        cb("finish", "Finished", other);
-    });
-    archive.on('error', function (err) {
-        cb("error", err, other);
-    });
+//     // on
+//     output.on('close', function () {
+//         cb("finish", "Finished", other);
+//     });
+//     archive.on('error', function (err) {
+//         cb("error", err, other);
+//     });
 
-    // zip
-    archive.pipe(output);
-    archive.directory(sourceFolder, subdir ? sourceFolder.substr(path.dirname(sourceFolder).length + 1) : false);
-    archive.finalize();
-}
+//     // zip
+//     archive.pipe(output);
+//     archive.directory(sourceFolder, subdir ? sourceFolder.substr(path.dirname(sourceFolder).length + 1) : false);
+//     archive.finalize();
+// }
 
 const downloadFile = (url, dest, cb = () => { }) => {
     // 确保dest路径存在
@@ -257,11 +258,34 @@ function fetchVersionDetails(data, type) {
                 });
         });
 }
+const copyDir = (sd, td) => {
+    // 读取目录下的文件，返回文件名及文件类型{name: 'xxx.txt, [Symbol(type)]: 1 }
+    const sourceFile = fs.readdirSync(sd, { withFileTypes: true })
+    for (const file of sourceFile) {
+        // 源文件 地址+文件名
+        const srcFile = path.resolve(sd, file.name)
+        // 目标文件
+        const tagFile = path.resolve(td, file.name)
+        // 文件是目录且未创建
+        if (file.isDirectory() && !fs.existsSync(tagFile)) {
+            fs.mkdirSync(tagFile, err => console.log(err))
+            copyDir(srcFile, tagFile)
+        } else if (file.isDirectory() && fs.existsSync(tagFile)) {
+            // 文件时目录且已存在
+            copyDir(srcFile, tagFile)
+        }
+        !file.isDirectory() && fs.copyFileSync(srcFile, tagFile, fs.constants.COPYFILE_FICLONE)
+    }
+}
 function nextStep_Sound(version) {
     console.log("Dealing with sound.json...");
     fs.writeFileSync("./output/sounds.json", JSON.stringify(dealSound(soundsFile, languageFile)));
-    console.log("Compressing the files...");
-    zipFolder("./output", `./mcdata-auto/files/${version}.zip`, CompressTheFiles, false, version);
+    console.log("Copying the files...");
+    let dir = `./mcdata-auto/files/${version}`;
+    if(!fs.existsSync(dir))
+        fs.mkdirSync(dir)
+    copyDir("./output",dir)
+    // zipFolder("./output", `./mcdata-auto/files/${version}/`, CompressTheFiles, false, version);
 }
 function dealSound(sound, translation) {
     var result = [];

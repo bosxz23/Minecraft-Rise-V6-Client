@@ -13,7 +13,7 @@ git commit -m "Check the update on ${day}."
 git push origin`;
 var cmds = cmd.split("\n");
 
-fs.writeFileSync("./updatetime.json", day);
+fs.writeFileSync("./updatetime.txt", day);
 
 const runClean = async function () {
     // cwd指定子进程的当前工作目录 这里的rm -rf build为删除指定目录下的一个文件夹
