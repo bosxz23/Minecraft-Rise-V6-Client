@@ -9,8 +9,7 @@ var day = new Date().toUTCString();
 console.log("Running on " + day);
 
 var cmd = `git add *
-git commit -m "Check the update on ${day}."
-git push origin`;
+git commit -m "Check the update on ${day}."`;
 var cmds = cmd.split("\n");
 
 fs.writeFileSync("./updatetime.txt", day);

@@ -22,9 +22,15 @@ jobs:
           git config --global user.name "wifi_left"
           git config --global user.email "ysy1679682327@outlook.com"
           bash ./run.sh
-      - name: Push back
+      - name: Make changes
         run: |
           node run_git_command_date.js
+          git commit -a -m "Add changes"
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.ref }}
       - name: Install SSH key
         uses: shimataro/ssh-key-action@v2
         with:
