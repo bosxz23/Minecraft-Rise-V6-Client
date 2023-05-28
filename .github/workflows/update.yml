@@ -4,6 +4,7 @@ on:
   schedule:
   # 定时任务，在每天的5点检查更新
     - cron: '0 21 * * *'
+  workflow_dispatch: {}
 
 jobs:
   bot:
