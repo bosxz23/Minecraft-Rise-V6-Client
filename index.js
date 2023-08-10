@@ -195,8 +195,8 @@ function fetchVersionDetails(data, type) {
                 .then(res => res.json())
                 .then(json => {
                     let objects = json['objects'];
-                    fs.writeFileSync("./mcdata-auto/info.json", JSON.stringify(infomations));
-                    fs.writeFileSync("./output/info.json", JSON.stringify({ "version": version, "updateDate": infomations['updateDate'] }));
+                    fs.writeFileSync("./mcdata-auto/info.json", JSON.stringify(infomations,null,4));
+                    fs.writeFileSync("./output/info.json", JSON.stringify({ "version": version, "updateDate": infomations['updateDate'] },null,4));
                     // fs.writeFileSync("./info.json", JSON.stringify(infomations));
                     let flag1 = false, flag2 = false, flag3 = false;
                     for (var i in objects) {
@@ -211,14 +211,14 @@ function fetchVersionDetails(data, type) {
                             fetch(url)
                                 .then(res => res.json())
                                 .then(json => {
-                                    fs.writeFileSync(`./output/${lang}.json`, JSON.stringify(json));
+                                    fs.writeFileSync(`./output/${lang}.json`, JSON.stringify(json,null,4));
 
-                                    fs.writeFileSync("./output/items.json", JSON.stringify(getItems(json)));
-                                    fs.writeFileSync("./output/blocks.json", JSON.stringify(getBlocks(json)));
-                                    fs.writeFileSync("./output/effects.json", JSON.stringify(getEffects(json)));
-                                    fs.writeFileSync("./output/entities.json", JSON.stringify(getEntities(json)));
-                                    fs.writeFileSync("./output/enchantments.json", JSON.stringify(getEnchantments(json)));
-                                    fs.writeFileSync("./output/gamerules.json", JSON.stringify(getGamerules(json)));
+                                    fs.writeFileSync("./output/items.json", JSON.stringify(getItems(json),null,4));
+                                    fs.writeFileSync("./output/blocks.json", JSON.stringify(getBlocks(json),null,4));
+                                    fs.writeFileSync("./output/effects.json", JSON.stringify(getEffects(json),null,4));
+                                    fs.writeFileSync("./output/entities.json", JSON.stringify(getEntities(json),null,4));
+                                    fs.writeFileSync("./output/enchantments.json", JSON.stringify(getEnchantments(json),null,4));
+                                    fs.writeFileSync("./output/gamerules.json", JSON.stringify(getGamerules(json),null,4));
                                     languageFile = json;
                                     //getGamerules
                                     // fs.writeFileSync("./info.json", JSON.stringify(infomations));
@@ -279,12 +279,12 @@ const copyDir = (sd, td) => {
 }
 function nextStep_Sound(version) {
     console.log("Dealing with sound.json...");
-    fs.writeFileSync("./output/sounds.json", JSON.stringify(dealSound(soundsFile, languageFile)));
+    fs.writeFileSync("./output/sounds.json", JSON.stringify(dealSound(soundsFile, languageFile),null,4));
     console.log("Copying the files...");
     let dir = `./mcdata-auto/files/${version}`;
-    if(!fs.existsSync(dir))
+    if (!fs.existsSync(dir))
         fs.mkdirSync(dir)
-    copyDir("./output",dir)
+    copyDir("./output", dir)
     // zipFolder("./output", `./mcdata-auto/files/${version}/`, CompressTheFiles, false, version);
 }
 function dealSound(sound, translation) {
@@ -315,10 +315,13 @@ const ItemIgnoreList = ["lava", "water", "air", "lodestone_compass"];
 // 纯方块或者是give无效id
 function getItems(lang) {
     var result = [];
+    var flags = {};
     // let lastBlockId = "";
     for (var i in lang) {
         if (i.substring(0, "item.minecraft.".length) == "item.minecraft.") {
             let id = i.substring("item.minecraft.".length);
+            if (flags[id] == true) continue;
+            flags[id] = true;
             if (id.search(/\./) != -1) {
                 // if(id.search("\.des"))
                 // console.log(id)
@@ -388,6 +391,7 @@ function getItems(lang) {
 }
 function getBlocks(lang) {
     var result = [];
+    var flags = {};
     for (var i in lang) {
         if (i.substring(0, "block.minecraft.".length) == "block.minecraft.") {
             let id = i.substring("block.minecraft.".length);
@@ -396,6 +400,8 @@ function getBlocks(lang) {
                 // console.log(id)
                 continue;
             }
+            if (flags[id] == true) continue;
+            flags[id] = true;
             let name = lang[i];
             let des = lang[i + ".desc"];
 
@@ -411,6 +417,7 @@ function getBlocks(lang) {
 }
 function getEntities(lang) {
     var result = [];
+    var flags = {};
     for (var i in lang) {
         if (i.substring(0, "entity.minecraft.".length) == "entity.minecraft.") {
             let id = i.substring("entity.minecraft.".length);
@@ -419,6 +426,8 @@ function getEntities(lang) {
                 // console.log(id)
                 continue;
             }
+            if (flags[id] == true) continue;
+            flags[id] = true;
             let name = lang[i];
             let des = lang[i + ".desc"];
 
