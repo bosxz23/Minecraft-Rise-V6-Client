@@ -3,7 +3,7 @@ name: 'GitHub Actions Check for Minecraft Data update.'
 on:
   schedule:
   # 定时任务，在每天的5点检查更新
-    - cron: '0 21 * * *'
+    - cron: '0 18 * * *'
   workflow_dispatch: {}
 
 jobs:

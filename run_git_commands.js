@@ -7,7 +7,7 @@ var cmd = `git add *
 git commit -m "Update the infomations."
 ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
 ssh-keyscan -t rsa gitlab.com >> ~/.ssh/known_hosts
-git push -u git@gitlab.com:wifi-left/mcdata-auto.git main`;
+git push -u git@gitlab.com:wifi-left/mcdata-auto.git master`;
 var cmds = cmd.split("\n");
 
 const runClean = async function () {
